@@ -128,4 +128,63 @@ e2guardian_SOURCES = String.cpp String.hpp \
                        $(IDENTAUTH_SOURCE) $(IPAUTH_SOURCE) \
                        $(DNSAUTH_SOURCE) $(PORTAUTH_SOURCE) \
                        $(NTLMAUTH_SOURCE) $(DIGESTAUTH_SOURCE) \
-		       $(HEADERAUTH_SOURCE) 
+		       $(HEADERAUTH_SOURCE)
+
+
+noinst_LIBRARIES = libe2guardian.a
+
+libe2guardian_a_CXXFLAGS = $(PCRE_CFLAGS) $(AM_CXXFLAGS)
+libe2guardian_a_LIBADD = $(PCRE_LIBS) $(AM_LIBS)
+libe2guardian_a_CPPFLAGS = -D__CONFFILE='"$(DGCONFFILE)"' \
+			-D__LOGLOCATION='"$(DGLOGLOCATION)/"' \
+			-D__PIDDIR='"$(DGPIDDIR)"' \
+			-D__PROXYUSER='"$(DGPROXYUSER)"' \
+			-D__PROXYGROUP='"$(DGPROXYGROUP)"' \
+			-D__CONFDIR='"$(DGCONFDIR)"' \
+			$(AM_CPPFLAGS)
+
+
+libe2guardian_a_SOURCES = String.cpp String.hpp \
+                       FDTunnel.cpp FDTunnel.hpp \
+                       ConnectionHandler.cpp ConnectionHandler.hpp \
+                       DataBuffer.cpp DataBuffer.hpp \
+                       HTTPHeader.cpp HTTPHeader.hpp \
+                       NaughtyFilter.cpp NaughtyFilter.hpp \
+		       BackedStore.cpp BackedStore.hpp\
+                       RegExp.cpp RegExp.hpp \
+		       FDFuncs.cpp FDFuncs.hpp \
+		       BaseSocket.cpp BaseSocket.hpp \
+                       Socket.cpp Socket.hpp \
+                       FatController.cpp FatController.hpp \
+                       UDSocket.cpp UDSocket.hpp \
+                       SysV.cpp SysV.hpp \
+                       ListContainer.cpp ListContainer.hpp \
+                       HTMLTemplate.cpp HTMLTemplate.hpp \
+                       LanguageContainer.cpp LanguageContainer.hpp \
+                       DynamicURLList.cpp DynamicURLList.hpp \
+		       DynamicIPList.cpp DynamicIPList.hpp \
+                       ImageContainer.cpp ImageContainer.hpp \
+		       IPList.cpp IPList.hpp \
+                       OptionContainer.cpp OptionContainer.hpp \
+                       FOptionContainer.cpp FOptionContainer.hpp \
+                       ListManager.cpp ListManager.hpp \
+                       md5.cpp md5.hpp \
+                       DownloadManager.cpp DownloadManager.hpp \
+                       ConfigVar.cpp ConfigVar.hpp \
+                       ContentScanner.cpp ContentScanner.hpp \
+		       SocketArray.cpp SocketArray.hpp \
+                       e2guardian.cpp \ Plugin.hpp \
+		       LOptionContainer.cpp LOptionContainer.hpp \
+                       CertificateAuthority.cpp CertificateAuthority.hpp \
+		       Queue.hpp \
+		       Auth.cpp Auth.hpp \
+		       $(ICAPSCAN_SOURCE) \
+                       $(KAVDSCAN_SOURCE) $(CLAMDSCAN_SOURCE) \
+                       $(AVASTDSCAN_SOURCE) \
+                       $(COMMANDLINE_SOURCE) \
+                       $(DEFAULTDM_SOURCE) $(FANCYDM_SOURCE) \
+                       $(TRICKLEDM_SOURCE) $(PROXYAUTH_SOURCE) \
+                       $(IDENTAUTH_SOURCE) $(IPAUTH_SOURCE) \
+                       $(DNSAUTH_SOURCE) $(PORTAUTH_SOURCE) \
+                       $(NTLMAUTH_SOURCE) $(DIGESTAUTH_SOURCE) \
+		       $(HEADERAUTH_SOURCE)
