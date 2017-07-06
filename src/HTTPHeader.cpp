@@ -4,6 +4,10 @@
 
 // INCLUDES
 
+#include <string>
+#include <iostream>
+#include <sstream>
+
 #ifdef HAVE_CONFIG_H
 #include "dgconfig.h"
 #endif
@@ -2057,6 +2061,32 @@ bool HTTPHeader::out(Socket *peersock, Socket *sock, int sendflag, bool reconnec
     return true;
 }
 
+bool HTTPHeader::ecapOut(libecap::Header& ecHeader) {
+    String l = ""; // for amalgamating to avoid conflict with the Nagel algorithm
+
+    if (header.size() > 1) {
+        for (std::deque<String>::iterator i = header.begin() + 1; i != header.end(); i++) {
+            if (! (*i).startsWith("X-E2G-IgnoreMe")){
+#ifdef DGDEBUG
+                std::cout << "Found Header: " << *i << " Line: " << __LINE__ << " Function: " << __func__ << std::endl;
+#endif
+                l += (*i) + "\n";
+            }
+#ifdef DGDEBUG
+            else {
+                    std::cout << "Found Header X-E2G-IgnoreMe: " << *i << " Line: " << __LINE__ << " Function: " << __func__ << std::endl;
+            }
+#endif
+        }
+    }
+
+    l += "\r\n";
+
+    ecHeader.parse(libecap::Area(l.toCharArray(), l.length()));
+
+    return true;
+}
+
 // discard remainder of POST data
 void HTTPHeader::discard(Socket *sock, off_t cl)
 {
@@ -2167,4 +2197,77 @@ bool HTTPHeader::in(Socket *sock, bool allowpersistent, bool honour_reloadconfig
     header.pop_back(); // remove the final blank line of a header
     checkheader(allowpersistent); // sort out a few bits in the header
     return true;
+}
+
+bool HTTPHeader::ecapIn(libecap::Header& ecHeader, bool allowpersistent, bool honour_reloadconfig) {
+    if (dirty)
+        reset();
+    dirty = true;
+
+    // the RFCs don't specify a max header line length so this should be
+    // dynamic really.  Pointed out (well reminded actually) by Daniel Robbins
+    String line; // temp store to hold the line after processing
+    line = "----"; // so we get past the first while
+    bool firsttime = true;
+    bool discard = false;
+
+    std::stringstream headerStream(std::string(ecHeader.image().start, ecHeader.image().size));
+
+    if(headerStream.str().length()) {
+        while (line.length() > 3 || discard) {
+            bool truncated = false;
+
+            if (!std::getline(headerStream, line)) {
+                ispersistent = false;
+                return false;
+            }
+
+            if (header.size() > o.max_header_lines) {
+                ispersistent = false;
+                return false;
+            }
+
+            if(firsttime && is_response) {
+                // check first line header
+                if (!(line.length() > 11 && line.startsWith("HTTP/") && (line.after(" ").before(" ").toInteger() > 99)))
+                {
+                    if(o.logconerror)
+                        syslog(LOG_INFO, "Server did not respond with HTTP");
+#ifdef DGDEBUG
+                    std::cout << "Returning from header:in Server did not respond with HTTP " << " Line: " << __LINE__ << " Function: " << __func__ << std::endl;
+                dbshowheader(false);
+#endif
+
+                    return false;
+                }
+            }
+
+            discard = false;
+            if (not(firsttime && line.length() <= 3)) {
+                header.push_back(line); // stick the line in the deque that holds the header
+            } else {
+                discard = true;
+#ifdef DGDEBUG
+                std::cout << "Discarding unwanted bytes at head of request (pconn closed or IE multipart POST bug)" << " Line: " << __LINE__ << " Function: " << __func__ << std::endl;
+#endif
+            }
+            firsttime = false;
+#ifdef DGDEBUG
+            std::cout << "Loop catch Header IN from client: " << line << " Line: " << __LINE__ << " Function: " << __func__ << std::endl;
+#endif
+        }
+
+        if (header.size() == 0) {
+#ifdef DGDEBUG
+            std::cout << "header:size = 0 " << " Line: " << __LINE__ << " Function: " << __func__ << std::endl;
+#endif
+            return false;
+        }
+
+        header.pop_back(); // remove the final blank line of a header
+        checkheader(allowpersistent); // sort out a few bits in the header
+        return true;
+    }
+
+    return false;
 }

@@ -17,12 +17,24 @@
 // INCLUDES
 
 #include <deque>
+#include <libecap/common/header.h>
 
 #include "String.hpp"
 //#include "DataBuffer.hpp"
 #include "Socket.hpp"
 #include "RegExp.hpp"
 #include "FOptionContainer.hpp"
+
+#include <libecap/common/errors.h>
+#include <libecap/common/message.h>
+#include <libecap/common/header.h>
+#include <libecap/common/names.h>
+#include <libecap/common/named_values.h>
+#include <libecap/host/host.h>
+#include <libecap/adapter/service.h>
+#include <libecap/adapter/xaction.h>
+#include <libecap/host/xaction.h>
+
 
 // DECLARATIONS
 
@@ -41,6 +53,7 @@ class HTTPHeader
 
     void setTimeout(int t);
     bool in(Socket *sock, bool allowpersistent = false, bool honour_reloadconfig = false);
+    bool ecapIn(libecap::Header& ecHeader, bool allowpersistent = false, bool honour_reloadconfig = false);
 
     // send headers out over the given socket
     // "reconnect" flag gives permission to reconnect to the socket on write error
@@ -49,6 +62,7 @@ class HTTPHeader
     // will throw a 407 and restart negotiation, but works well with basic & others.
     //void out(Socket *peersock, Socket *sock, int sendflag, bool reconnect = false) throw(std::exception);
     bool out(Socket *peersock, Socket *sock, int sendflag, bool reconnect = false);
+    bool ecapOut(libecap::Header& ecHeader);
 
     // discard remainder of POST data
     // amount to discard can be passed in, or will default to contentLength()
