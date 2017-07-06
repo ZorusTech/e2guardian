@@ -61,6 +61,18 @@ class ConnectionHandler
     // pass data between proxy and client, filtering as we go.
     int handlePeer(Socket &peerconn, String &ip, stat_rec* &dystat);
 
+    // check the request header is OK (client host/user/IP allowed to browse, site not banned, upload not too big)
+    void requestChecks(HTTPHeader *header, NaughtyFilter *checkme, String *urld, String *url, std::string *clientip,
+                       std::string *clientuser, int filtergroup, bool &isbanneduser, bool &isbannedip, std::string &room);
+
+    void requestLocalChecks(HTTPHeader *header, NaughtyFilter *checkme, String *urld, String *url, std::string *clientip,
+                            std::string *clientuser, int filtergroup, bool &isbanneduser, bool &isbannedip, std::string &room);
+
+    bool embededRefererChecks(HTTPHeader *header, String *urld, String *url, int filtergroup);
+
+    // strip the URL down to just the IP/hostname, then do an isIPHostname on the result
+    bool isIPHostnameStrip(String url);
+
     private:
     int filtergroup;
     bool matchedip;
@@ -99,18 +111,6 @@ class ConnectionHandler
 
     // when using IP address counting - have we got any remaining free IPs?
     bool gotIPs(std::string ipstr);
-
-    // check the request header is OK (client host/user/IP allowed to browse, site not banned, upload not too big)
-    void requestChecks(HTTPHeader *header, NaughtyFilter *checkme, String *urld, String *url, std::string *clientip,
-        std::string *clientuser, int filtergroup, bool &isbanneduser, bool &isbannedip, std::string &room);
-
-    void requestLocalChecks(HTTPHeader *header, NaughtyFilter *checkme, String *urld, String *url, std::string *clientip,
-        std::string *clientuser, int filtergroup, bool &isbanneduser, bool &isbannedip, std::string &room);
-
-    bool embededRefererChecks(HTTPHeader *header, String *urld, String *url, int filtergroup);
-
-    // strip the URL down to just the IP/hostname, then do an isIPHostname on the result
-    bool isIPHostnameStrip(String url);
 
     RegExp ch_isiphost;
     RegResult Rch_isiphost;
